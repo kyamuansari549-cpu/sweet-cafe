@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sweet Cafe Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6F4E37;
+            --secondary: #D4A574;
+            --dark: #1A1A1A;
+            --darker: #0F0F0F;
+            --light: #F5F0EB;
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --success: #4ade80;
+            --error: #f87171;
+            --warning: #fbbf24;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--darker);
+            color: var(--light);
+            min-height: 100vh;
+        }
+
+        .login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--darker) 0%, #2C1810 50%, var(--darker) 100%);
+        }
+        .login-box {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .login-box h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+        .login-box p { color: rgba(245,240,235,0.6); margin-bottom: 2rem; }
+        .form-group { margin-bottom: 1.5rem; text-align: left; }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: rgba(245,240,235,0.8);
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--light);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            border-color: var(--secondary);
+            background: rgba(255,255,255,0.08);
+        }
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--secondary);
+            color: var(--darker);
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(212,165,116,0.3); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .dashboard { display: none; }
+        .dashboard.active { display: flex; }
+
+        .sidebar {
+            width: 260px;
+            background: var(--dark);
+            border-right: 1px solid var(--glass-border);
+            height: 100vh;
+            position: fixed;
+            left: 0; top: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+        }
+        .sidebar-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--secondary);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.9rem 1rem;
+            border-radius: 12px;
+            color: rgba(245,240,235,0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            margin-bottom: 0.3rem;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: var(--glass);
+            color: var(--secondary);
+        }
+        .nav-item svg { width: 20px; height: 20px; }
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--glass-border);
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+        .user-avatar {
+            width: 40px; height: 40px;
+            background: var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--darker);
+            font-weight: 600;
+        }
+        .user-info div h4 { font-size: 0.9rem; }
+        .user-info div p { font-size: 0.75rem; color: rgba(245,240,235,0.5); }
+
+        .main-content {
+            margin-left: 260px;
+            padding: 2rem;
+            min-height: 100vh;
+            width: calc(100% - 260px);
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .page-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(212,165,116,0.3);
+        }
+        .stat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .stat-card-header h3 {
+            font-size: 0.85rem;
+            color: rgba(245,240,235,0.6);
+            font-weight: 400;
+        }
+        .stat-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .stat-icon.blue { background: rgba(59,130,246,0.15); }
+        .stat-icon.green { background: rgba(74,222,128,0.15); }
+        .stat-icon.yellow { background: rgba(251,191,36,0.15); }
+        .stat-icon.red { background: rgba(248,113,113,0.15); }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
+        .table-container {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .table-header h3 { font-size: 1rem; }
+        .table-actions { display: flex; gap: 0.5rem; }
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .btn-primary-sm { background: var(--secondary); color: var(--darker); }
+        .btn-danger-sm { background: rgba(248,113,113,0.2); color: var(--error); }
+        .btn-success-sm { background: rgba(74,222,128,0.2); color: var(--success); }
+        .btn-sm:hover { transform: translateY(-1px); }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+        th {
+            color: rgba(245,240,235,0.5);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.75rem;
+        }
+        td { border-top: 1px solid var(--glass-border); }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+        .badge {
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .badge-pending { background: rgba(251,191,36,0.15); color: var(--warning); }
+        .badge-confirmed { background: rgba(74,222,128,0.15); color: var(--success); }
+        .badge-cancelled { background: rgba(248,113,113,0.15); color: var(--error); }
+        .badge-unread { background: rgba(59,130,246,0.15); color: #60a5fa; }
+
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal {
+            background: var(--dark);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .modal { transform: scale(1); }
+        .modal h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            min-width: 300px;
+            transform: translateX(400px);
+            transition: transform 0.4s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast.success { border-left: 3px solid var(--success); }
+        .toast.error { border-left: 3px solid var(--error); }
+
+        .skeleton {
+            background: linear-gradient(90deg, var(--glass) 25%, rgba(255,255,255,0.05) 50%, var(--glass) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 8px;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; height: auto; position: relative; }
+            .main-content { margin-left: 0; width: 100%; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            table { font-size: 0.8rem; }
+            th, td { padding: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <h1>Sweet Cafe</h1>
+            <p>Admin Dashboard</p>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="loginUsername" placeholder="admin" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="admin123" required>
+                </div>
+                <button type="submit" class="btn" id="loginBtn">Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <aside class="sidebar">
+            <div class="sidebar-logo">Sweet Cafe</div>
+            <nav>
+                <button class="nav-item active" data-page="overview">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Overview
+                </button>
+                <button class="nav-item" data-page="menu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
+                    Menu Items
+                </button>
+                <button class="nav-item" data-page="reservations">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    Reservations
+                </button>
+                <button class="nav-item" data-page="contacts">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    Messages
+                </button>
+                <button class="nav-item" data-page="testimonials">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                    Testimonials
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">A</div>
+                    <div>
+                        <h4 id="adminName">Admin</h4>
+                        <p>Administrator</p>
+                    </div>
+                </div>
+                <button class="btn" style="font-size:0.85rem; padding:0.7rem;" onclick="logout()">Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <!-- Overview -->
+            <div class="content-section active" id="page-overview">
+                <div class="page-header">
+                    <h2>Dashboard Overview</h2>
+                    <span style="color:rgba(245,240,235,0.5);font-size:0.85rem;" id="lastUpdated"></span>
+                </div>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card"><div class="skeleton" style="height:80px;"></div></div>
+                    <div class="stat-card"><div class="skeleton" style="height:80px;"></div></div>
+                    <div class="stat-card"><div class="skeleton" style="height:80px;"></div></div>
+                    <div class="stat-card"><div class="skeleton" style="height:80px;"></div></div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Recent Messages</h3>
+                        <button class="btn-sm btn-primary-sm" onclick="showPage('contacts')">View All</button>
+                    </div>
+                    <table id="recentContactsTable">
+                        <thead><tr><th>Name</th><th>Email</th><th>Message</th><th>Date</th><th>Status</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Recent Reservations</h3>
+                        <button class="btn-sm btn-primary-sm" onclick="showPage('reservations')">View All</button>
+                    </div>
+                    <table id="recentReservationsTable">
+                        <thead><tr><th>Name</th><th>Date</th><th>Time</th><th>Guests</th><th>Status</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Menu Items -->
+            <div class="content-section" id="page-menu">
+                <div class="page-header">
+                    <h2>Menu Items</h2>
+                    <button class="btn-sm btn-primary-sm" onclick="openMenuModal()">+ Add Item</button>
+                </div>
+                <div class="table-container">
+                    <table id="menuTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th><th>Category</th><th>Price</th><th>Tag</th><th>Status</th><th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Reservations -->
+            <div class="content-section" id="page-reservations">
+                <div class="page-header"><h2>Reservations</h2></div>
+                <div class="table-container">
+                    <table id="reservationsTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th><th>Email</th><th>Phone</th><th>Date</th><th>Time</th><th>Guests</th><th>Status</th><th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Contacts -->
+            <div class="content-section" id="page-contacts">
+                <div class="page-header"><h2>Contact Messages</h2></div>
+                <div class="table-container">
+                    <table id="contactsTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th><th>Email</th><th>Phone</th><th>Message</th><th>Date</th><th>Status</th><th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Testimonials -->
+            <div class="content-section" id="page-testimonials">
+                <div class="page-header">
+                    <h2>Testimonials</h2>
+                    <button class="btn-sm btn-primary-sm" onclick="openTestimonialModal()">+ Add Testimonial</button>
+                </div>
+                <div class="table-container">
+                    <table id="testimonialsTable">
+                        <thead>
+                            <tr>
+                                <th>Author</th><th>Role</th><th>Text</th><th>Rating</th><th>Status</th><th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Menu Item Modal -->
+    <div class="modal-overlay" id="menuModal">
+        <div class="modal">
+            <h3 id="menuModalTitle">Add Menu Item</h3>
+            <form id="menuForm">
+                <input type="hidden" id="menuId">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="menuName" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="menuDesc">
+                </div>
+                <div class="form-group">
+                    <label>Price</label>
+                    <input type="number" id="menuPrice" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <input type="text" id="menuCategory" placeholder="coffee, tea, dessert" required>
+                </div>
+                <div class="form-group">
+                    <label>Tag (optional)</label>
+                    <input type="text" id="menuTag" placeholder="Bestseller, New, etc.">
+                </div>
+                <div style="display:flex;gap:0.5rem;">
+                    <button type="button" class="btn" style="background:var(--glass);color:var(--light);" onclick="closeModal('menuModal')">Cancel</button>
+                    <button type="submit" class="btn">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Testimonial Modal -->
+    <div class="modal-overlay" id="testimonialModal">
+        <div class="modal">
+            <h3 id="testimonialModalTitle">Add Testimonial</h3>
+            <form id="testimonialForm">
+                <input type="hidden" id="testimonialId">
+                <div class="form-group">
+                    <label>Author Name</label>
+                    <input type="text" id="testimonialAuthor" required>
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <input type="text" id="testimonialRole" placeholder="Customer, Food Blogger, etc.">
+                </div>
+                <div class="form-group">
+                    <label>Text</label>
+                    <textarea id="testimonialText" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Rating (1-5)</label>
+                    <input type="number" id="testimonialRating" min="1" max="5" value="5">
+                </div>
+                <div style="display:flex;gap:0.5rem;">
+                    <button type="button" class="btn" style="background:var(--glass);color:var(--light);" onclick="closeModal('testimonialModal')">Cancel</button>
+                    <button type="submit" class="btn">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin + '/api';
+        let authToken = localStorage.getItem('sweetcafe_token');
+
+        if (authToken) showDashboard();
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <span style="font-size:1.2rem;">${type === 'success' ? '✓' : '✕'}</span>
+                <div><h4 style="font-size:0.9rem;margin-bottom:0.2rem;">${type === 'success' ? 'Success' : 'Error'}</h4><p style="font-size:0.8rem;color:rgba(245,240,235,0.7)">${message}</p></div>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 4000);
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = true;
+            btn.textContent = 'Signing in...';
+
+            try {
+                const res = await fetch(`${API_BASE}/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: document.getElementById('loginUsername').value,
+                        password: document.getElementById('loginPassword').value
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    authToken = data.token;
+                    localStorage.setItem('sweetcafe_token', authToken);
+                    showDashboard();
+                    showToast('Welcome back, ' + data.username);
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (err) {
+                showToast('Login failed', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
+            }
+        });
+
+        function showDashboard() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+            loadDashboardData();
+        }
+
+        function logout() {
+            localStorage.removeItem('sweetcafe_token');
+            authToken = null;
+            location.reload();
+        }
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                showPage(item.dataset.page);
+            });
+        });
+
+        function showPage(page) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`page-${page}`).classList.add('active');
+
+            if (page === 'menu') loadMenuItems();
+            if (page === 'reservations') loadReservations();
+            if (page === 'contacts') loadContacts();
+            if (page === 'testimonials') loadTestimonials();
+            if (page === 'overview') loadDashboardData();
+        }
+
+        async function api(endpoint, options = {}) {
+            const res = await fetch(`${API_BASE}${endpoint}`, {
+                ...options,
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                }
+            });
+            return res.json();
+        }
+
+        async function loadDashboardData() {
+            const data = await api('/admin/stats');
+            if (!data.success) return;
+
+            document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+
+            const stats = [
+                { title: 'Total Menu Items', value: data.stats.totalMenuItems, icon: '☕', color: 'blue' },
+                { title: 'Total Reservations', value: data.stats.totalReservations, icon: '📅', color: 'green' },
+                { title: 'Pending Reservations', value: data.stats.pendingReservations, icon: '⏳', color: 'yellow' },
+                { title: 'Unread Messages', value: data.stats.unreadContacts, icon: '✉️', color: 'red' }
+            ];
+
+            document.getElementById('statsGrid').innerHTML = stats.map(s => `
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <h3>${s.title}</h3>
+                        <div class="stat-icon ${s.color}">${s.icon}</div>
+                    </div>
+                    <div class="stat-value">${s.value}</div>
+                </div>
+            `).join('');
+
+            const contactsBody = document.querySelector('#recentContactsTable tbody');
+            contactsBody.innerHTML = data.recentContacts.map(c => `
+                <tr>
+                    <td>${c.name}</td>
+                    <td>${c.email}</td>
+                    <td>${c.message.substring(0, 50)}${c.message.length > 50 ? '...' : ''}</td>
+                    <td>${new Date(c.created_at).toLocaleDateString()}</td>
+                    <td><span class="badge ${c.is_read ? 'badge-confirmed' : 'badge-unread'}">${c.is_read ? 'Read' : 'Unread'}</span></td>
+                </tr>
+            `).join('');
+
+            const resBody = document.querySelector('#recentReservationsTable tbody');
+            resBody.innerHTML = data.recentReservations.map(r => `
+                <tr>
+                    <td>${r.name}</td>
+                    <td>${r.date}</td>
+                    <td>${r.time}</td>
+                    <td>${r.guests}</td>
+                    <td><span class="badge badge-${r.status}">${r.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadMenuItems() {
+            const data = await api('/menu?category=all');
+            const tbody = document.querySelector('#menuTable tbody');
+            if (!data || !data.data) { tbody.innerHTML = '<tr><td colspan="6">No items found</td></tr>'; return; }
+
+            tbody.innerHTML = data.data.map(item => `
+                <tr>
+                    <td><strong>${item.name}</strong><br><small style="color:rgba(245,240,235,0.5)">${item.description || ''}</small></td>
+                    <td>${item.category}</td>
+                    <td>$${item.price.toFixed(2)}</td>
+                    <td>${item.tag || '-'}</td>
+                    <td><span class="badge ${item.is_available ? 'badge-confirmed' : 'badge-cancelled'}">${item.is_available ? 'Active' : 'Inactive'}</span></td>
+                    <td>
+                        <button class="btn-sm btn-primary-sm" onclick="editMenuItem(${item.id}, '${item.name.replace(/'/g, "\'")}', '${(item.description || '').replace(/'/g, "\'")}', ${item.price}, '${item.category}', '${(item.tag || '').replace(/'/g, "\'")}')">Edit</button>
+                        <button class="btn-sm btn-danger-sm" onclick="deleteMenuItem(${item.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openMenuModal() {
+            document.getElementById('menuModalTitle').textContent = 'Add Menu Item';
+            document.getElementById('menuForm').reset();
+            document.getElementById('menuId').value = '';
+            document.getElementById('menuModal').classList.add('active');
+        }
+
+        function editMenuItem(id, name, desc, price, category, tag) {
+            document.getElementById('menuModalTitle').textContent = 'Edit Menu Item';
+            document.getElementById('menuId').value = id;
+            document.getElementById('menuName').value = name;
+            document.getElementById('menuDesc').value = desc;
+            document.getElementById('menuPrice').value = price;
+            document.getElementById('menuCategory').value = category;
+            document.getElementById('menuTag').value = tag;
+            document.getElementById('menuModal').classList.add('active');
+        }
+
+        document.getElementById('menuForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('menuId').value;
+            const body = {
+                name: document.getElementById('menuName').value,
+                description: document.getElementById('menuDesc').value,
+                price: parseFloat(document.getElementById('menuPrice').value),
+                category: document.getElementById('menuCategory').value,
+                tag: document.getElementById('menuTag').value,
+                is_available: 1
+            };
+
+            const endpoint = id ? `/admin/menu/${id}` : '/admin/menu';
+            const method = id ? 'PATCH' : 'POST';
+
+            const res = await api(endpoint, { method, body: JSON.stringify(body) });
+            if (res.success) {
+                showToast(id ? 'Item updated!' : 'Item added!');
+                closeModal('menuModal');
+                loadMenuItems();
+            } else {
+                showToast(res.error, 'error');
+            }
+        });
+
+        async function deleteMenuItem(id) {
+            if (!confirm('Delete this item?')) return;
+            const res = await api(`/admin/menu/${id}`, { method: 'DELETE' });
+            if (res.success) { showToast('Item deleted'); loadMenuItems(); }
+            else showToast(res.error, 'error');
+        }
+
+        async function loadReservations() {
+            const data = await api('/admin/reservations');
+            const tbody = document.querySelector('#reservationsTable tbody');
+            if (!data || !data.data) { tbody.innerHTML = '<tr><td colspan="8">No reservations</td></tr>'; return; }
+
+            tbody.innerHTML = data.data.map(r => `
+                <tr>
+                    <td>${r.name}</td>
+                    <td>${r.email}</td>
+                    <td>${r.phone || '-'}</td>
+                    <td>${r.date}</td>
+                    <td>${r.time}</td>
+                    <td>${r.guests}</td>
+                    <td><span class="badge badge-${r.status}">${r.status}</span></td>
+                    <td>
+                        ${r.status === 'pending' ? `<button class="btn-sm btn-success-sm" onclick="updateReservation(${r.id}, 'confirmed')">Confirm</button>` : ''}
+                        ${r.status !== 'cancelled' ? `<button class="btn-sm btn-danger-sm" onclick="updateReservation(${r.id}, 'cancelled')">Cancel</button>` : ''}
+                        <button class="btn-sm btn-danger-sm" onclick="deleteReservation(${r.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function updateReservation(id, status) {
+            const res = await api(`/admin/reservations/${id}/status`, {
+                method: 'PATCH',
+                body: JSON.stringify({ status })
+            });
+            if (res.success) { showToast(`Reservation ${status}`); loadReservations(); }
+        }
+
+        async function deleteReservation(id) {
+            if (!confirm('Delete this reservation?')) return;
+            const res = await api(`/admin/reservations/${id}`, { method: 'DELETE' });
+            if (res.success) { showToast('Deleted'); loadReservations(); }
+        }
+
+        async function loadContacts() {
+            const data = await api('/admin/contacts');
+            const tbody = document.querySelector('#contactsTable tbody');
+            if (!data || !data.data) { tbody.innerHTML = '<tr><td colspan="7">No messages</td></tr>'; return; }
+
+            tbody.innerHTML = data.data.map(c => `
+                <tr>
+                    <td>${c.name}</td>
+                    <td>${c.email}</td>
+                    <td>${c.phone || '-'}</td>
+                    <td>${c.message.substring(0, 60)}${c.message.length > 60 ? '...' : ''}</td>
+                    <td>${new Date(c.created_at).toLocaleDateString()}</td>
+                    <td><span class="badge ${c.is_read ? 'badge-confirmed' : 'badge-unread'}">${c.is_read ? 'Read' : 'Unread'}</span></td>
+                    <td>
+                        ${!c.is_read ? `<button class="btn-sm btn-success-sm" onclick="markContactRead(${c.id})">Mark Read</button>` : ''}
+                        <button class="btn-sm btn-danger-sm" onclick="deleteContact(${c.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function markContactRead(id) {
+            const res = await api(`/admin/contacts/${id}/read`, { method: 'PATCH' });
+            if (res.success) { showToast('Marked as read'); loadContacts(); }
+        }
+
+        async function deleteContact(id) {
+            if (!confirm('Delete this message?')) return;
+            const res = await api(`/admin/contacts/${id}`, { method: 'DELETE' });
+            if (res.success) { showToast('Deleted'); loadContacts(); }
+        }
+
+        async function loadTestimonials() {
+            const data = await api('/testimonials');
+            const tbody = document.querySelector('#testimonialsTable tbody');
+            if (!data || !data.data) { tbody.innerHTML = '<tr><td colspan="6">No testimonials</td></tr>'; return; }
+
+            tbody.innerHTML = data.data.map(t => `
+                <tr>
+                    <td>${t.author_name}</td>
+                    <td>${t.author_role || '-'}</td>
+                    <td>${t.text.substring(0, 50)}...</td>
+                    <td>${'★'.repeat(t.rating)}${'☆'.repeat(5-t.rating)}</td>
+                    <td><span class="badge ${t.is_active ? 'badge-confirmed' : 'badge-cancelled'}">${t.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td>
+                        <button class="btn-sm btn-primary-sm" onclick="editTestimonial(${t.id}, '${t.author_name.replace(/'/g, "\'")}', '${(t.author_role || '').replace(/'/g, "\'")}', '${t.text.replace(/'/g, "\'")}', ${t.rating})">Edit</button>
+                        <button class="btn-sm btn-danger-sm" onclick="deleteTestimonial(${t.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openTestimonialModal() {
+            document.getElementById('testimonialModalTitle').textContent = 'Add Testimonial';
+            document.getElementById('testimonialForm').reset();
+            document.getElementById('testimonialId').value = '';
+            document.getElementById('testimonialModal').classList.add('active');
+        }
+
+        function editTestimonial(id, name, role, text, rating) {
+            document.getElementById('testimonialModalTitle').textContent = 'Edit Testimonial';
+            document.getElementById('testimonialId').value = id;
+            document.getElementById('testimonialAuthor').value = name;
+            document.getElementById('testimonialRole').value = role;
+            document.getElementById('testimonialText').value = text;
+            document.getElementById('testimonialRating').value = rating;
+            document.getElementById('testimonialModal').classList.add('active');
+        }
+
+        document.getElementById('testimonialForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('testimonialId').value;
+            const body = {
+                text: document.getElementById('testimonialText').value,
+                author_name: document.getElementById('testimonialAuthor').value,
+                author_role: document.getElementById('testimonialRole').value,
+                rating: parseInt(document.getElementById('testimonialRating').value),
+                is_active: 1
+            };
+
+            const endpoint = id ? `/admin/testimonials/${id}` : '/admin/testimonials';
+            const method = id ? 'PATCH' : 'POST';
+
+            const res = await api(endpoint, { method, body: JSON.stringify(body) });
+            if (res.success) {
+                showToast(id ? 'Updated!' : 'Added!');
+                closeModal('testimonialModal');
+                loadTestimonials();
+            } else {
+                showToast(res.error, 'error');
+            }
+        });
+
+        async function deleteTestimonial(id) {
+            if (!confirm('Delete this testimonial?')) return;
+            const res = await api(`/admin/testimonials/${id}`, { method: 'DELETE' });
+            if (res.success) { showToast('Deleted'); loadTestimonials(); }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+        document.querySelectorAll('.modal-overlay').forEach(m => {
+            m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('active'); });
+        });
+    </script>
+</body>
+</html>
