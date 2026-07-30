@@ -17,7 +17,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'sweet-cafe-secret-key-2024';
 app.use(helmet({
   contentSecurityPolicy: false,
 }));
-app.use(cors());
+app.use(cors({
+     origin: 'https://sweet-cafe-2.onrender.com'
+   }));
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));

@@ -69,10 +69,10 @@ const settings = [
 const insertSetting = db.prepare(`INSERT INTO settings (key, value) VALUES (?, ?)`);
 settings.forEach(s => insertSetting.run(s.key, s.value));
 
-// Seed Admin (default: admin / admin123)
-const adminPassword = bcrypt.hashSync('admin123', 10);
+// Seed Admin (default: admin12 / admin123)
+const adminPassword = bcrypt.hashSync('kyamuansari549@@', 10);
 db.prepare(`INSERT INTO admins (username, password_hash) VALUES (?, ?)`).run('admin', adminPassword);
 
 console.log('✅ Database seeded successfully!');
 console.log(`📊 Stats: ${menuItems.length} menu items, ${testimonials.length} testimonials, ${gallery.length} gallery items`);
-console.log('🔐 Default admin credentials: username=admin, password=admin123');
+console.log('🔐 Default admin credentials: username=admin, password=kyamuansari549@@');
