@@ -8,6 +8,30 @@ const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('./db');
+// ==================== ADMIN BOOTSTRAP ====================
+// Syncs admin password from environment variable on every server start
+const bootstrapAdmin = () => {
+  const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword) {
+    console.log('⚠️  ADMIN_PASSWORD not set, skipping admin sync');
+    return;
+  }
+
+  const existing = db.prepare('SELECT * FROM admins WHERE username = ?').get(adminUsername);
+  const passwordHash = bcrypt.hashSync(adminPassword, 10);
+
+  if (!existing) {
+    db.prepare('INSERT INTO admins (username, password_hash) VALUES (?, ?)').run(adminUsername, passwordHash);
+    console.log(`✅ Admin account created: ${adminUsername}`);
+  } else {
+    db.prepare('UPDATE admins SET password_hash = ? WHERE username = ?').run(passwordHash, adminUsername);
+    console.log(`🔄 Admin password synced for: ${adminUsername}`);
+  }
+};
+
+bootstrapAdmin();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
